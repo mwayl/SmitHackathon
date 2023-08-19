@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="blogposting.css">
+    <title>Document</title>
+</head>
+<body>
+    <div class="header">
+        <h1 class="main-heading">Personal Blogging App</h1>
+        <button class="log-out"><a class="login-link" href="profile.html">Profile</a></button>
+        <button class="See-All-Post"><a class="index-link" href="index.html">All Post</a></button>
+      </div>
+      <div class="inner-header">
+        <h1 class="heading-of-Page">Dashboard</h1>
+      </div>
+
+
+
+
+      <div class="posting">
+
+        <form>
+            
+            <input type="text" name="blog" placeholder="Placeholder" id="headingOfPost">
+              
+            <!-- <input type="text" name="description" placeholder="What is in your mind" id="headingOfPost"></br> -->
+        <textarea name="Description" id="discriptionOfPost" rows="10" placeholder="What is in your mind"></textarea></br>
+        <!-- <button class="submit" onclick="submit()">submit</button> -->
+        <input type="button" class="submit" value="Publish blog">
+        </form>
+    </div>
+    <div class="myBlog">My Blogs</div>
+    <div class="postDisplay" id="postDisplayGrid">
+        
+        </div>
+<div class="box" id="editing"></div>
+    <!-- <div class="post">
+        <div class="picture"></div>
+        <div class="heading">An Action Button Could Be Coming To The iphone 15</div>
+        <div class="information">Muhammad Wayl - August 16th,2023</div>
+        <div class="post-description">Lorem ipsum dolor sit amet consectetur, adipisicing elit. Nihil dolore illo aperiam fuga deserunt ab incidunt aliquid nesciunt repellendus, at eveniet delectus, alias quaerat eos quas ut, porro sunt consequatur!Lorem ipsum dolor sit amet consectetur, adipisicing elit. Nihil dolore illo aperiam fuga deserunt ab incidunt aliquid nesciunt repellendus, at eveniet delectus, alias quaerat eos quas ut, porro sunt consequatur!Lorem ipsum dolor sit amet consectetur, adipisicing elit. Nihil dolore illo aperiam fuga deserunt ab incidunt aliquid nesciunt repellendus, at eveniet delectus, alias quaerat eos quas ut, porro sunt consequatur!Lorem ipsum dolor sit amet consectetur, adipisicing elit. Nihil dolore illo aperiam fuga deserunt ab incidunt aliquid nesciunt repellendus, at eveniet delectus, alias quaerat eos quas ut, porro sunt consequatur!Lorem ipsum, dolor sit amet consectetur adipisicing elit. Vitae voluptatum, alias incidunt, libero odit laboriosam ipsum maiores in similique, quam fuga. Autem obcaecati quaerat dolores praesentium sequi aut, quas ut!Lorem ipsum, dolor sit amet consectetur adipisicing elit. Vitae voluptatum, alias incidunt, libero odit laboriosam ipsum maiores in similique, quam fuga. Autem obcaecati quaerat dolores praesentium sequi aut, quas ut!</div>
+         <button type="button" class="deleteButton" id="delete">Delete</button>
+         <button type="button" class="EditButton" id="delete">Edit</button>
+    </div> -->
+    
+    
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { collection, addDoc, getFirestore,
+            getDocs, onSnapshot, serverTimestamp,
+            query, orderBy, deleteDoc, doc, updateDoc} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+            import { signInWithEmailAndPassword, getAuth } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+            const firebaseConfig = {
+    apiKey: "AIzaSyCdWSJY_WIVbMAOW8bwEpGhrn2-g6zLefM",
+    authDomain: "smit-hackaton-project.firebaseapp.com",
+    projectId: "smit-hackaton-project",
+    storageBucket: "smit-hackaton-project.appspot.com",
+    messagingSenderId: "17540766910",
+    appId: "1:17540766910:web:ebbb56ad74a6896f3892ef",
+    measurementId: "G-DZ1RRJ6ZFN"
+  };
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+
+
+        let element=document.querySelector(".submit")
+        element.addEventListener("click",async (event)=>{
+            event.preventDefault();
+            // alert("hello")
+            const heading=document.getElementById("headingOfPost").value;
+        console.log(heading)
+        const description=document.getElementById("discriptionOfPost").value
+        console.log(description)
+
+        // let user = auth.currentUser;
+        // let email=user.email;
+        // console.log("the user is",email)
+        let user = auth.currentUser;
+            let email = "";
+            
+            if (user) {
+                email = user.email;
+                console.log("The user's email is:", email);
+            } else {
+                console.log("No user is currently authenticated.");
+            }
+
+        const docRef = await addDoc(collection(db, "posts"), {
+             heading: heading,
+             description: description,
+             email: email,
+             createdAt: serverTimestamp()
+               });
+              console.log("Document written with ID: ", docRef.id);
+              alert("Blog posted Successfully For Seeing Result you refreshed your browser");
+        })
+
+
+
+
+        document.addEventListener("readystatechange",async (event) => {
+            console.log(`readystate: ${document.readyState}`)
+        if (document.readyState === "complete") {
+            // const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+            const q = collection(db, "posts");
+
+            let user = auth.currentUser;
+            var email = "";
+            
+            
+            auth.onAuthStateChanged((user) => {
+            if (user) {
+                email = user.email;
+               // console.log("The user's email is in fetching:", email);
+            } else {
+                console.log("No user is currently authenticated.");
+            }
+        });
+            // const unsubscribe = onSnapshot(q,async (querySnapshot) => {
+                const querySnapshot = await getDocs(q);
+                const postGrid = document.querySelector("#postDisplayGrid");
+                postGrid.innerHTML = '';
+                // console.log(doc)
+                console.log(querySnapshot.size);
+               
+
+                querySnapshot.forEach(function (doc) {
+                    
+                        const data = doc.data();
+                        const postId = doc.id;
+                        var time=data.createdAt;
+                        // console.log(time.seconds);
+                        const emailGetFromFirebase=data.email;
+                        // const firstname = data.firstname;
+                        // const lastname = data.lastname;
+                        // console.log(firstname+" " + lastname);
+                        // console.log(emailGetFromFirebase)
+                        // //   console.log(data)
+                        //   console.log(postId)
+                  
+    if(emailGetFromFirebase===email)     { 
+        
+         const date = new Date(time * 1000); // Multiply by 1000 to convert to milliseconds
+        //  console.log(date)
+// Create an array of month names to use in formatting
+const monthNames = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+];
+
+// Get the components of the date
+// const year = date.getFullYear();
+const month = monthNames[date.getMonth()];
+const day = date.getDate();
+
+// const formattedDate = `${month} ${day},${year}`;
+
+      const postDiv=document.createElement('div');
+      const posting=`
+        <div class="picture"></div>
+        <div class="heading">${data.heading}</div>
+        <div class="information">Muhammad Wayl - ${month} ${day},2023</div>
+        <div class="post-description">${data.description}</div>
+        <button type="button" class="deleteButton" id="delete" value="delete" onclick="deleteBook('${doc.id}')">Delete</button>
+        <button type="button" class="EditButton" id="edit" vlaue="edit" onclick="editBook('${doc.id}' , '${data.heading}' ,'${data.description}')">Edit</button>
+    `
+    // <button type="button" class="deleteButton" id="delete" value="delete" onclick="deleteBook('${doc.id}')">Delete</button>
+    //      <button type="button" class="EditButton" id="delete" vlaue="edit" onclick="editBook('${doc.id}' , '${data.heading}' ,'${data.description}')">Edit</button>
+    // <div class="post"  data-id="${postId}>
+    postDiv.innerHTML =posting
+    postDiv.classList.add("post")
+    //  console.log(doc.id)
+    postDiv.id = `post-${doc.id}`; 
+console.log(postDiv)
+    postGrid.appendChild(postDiv)
+    }
+    
+                    });
+                }
+
+
+                //edit post function
+
+                window.editBook = (docId, heading, description) => {
+    const box = document.getElementById(`post-${docId}`);
+    const editForm = document.createElement('form');
+    editForm.onsubmit = (event) => completeEdit(event, docId);
+
+    const editInput = document.createElement('input');
+    editInput.type = 'text';
+    editInput.name = 'blog';
+    editInput.placeholder = 'Placeholder';
+    editInput.value = heading; // Pass the heading value
+
+    const editTextArea = document.createElement('textarea');
+    editTextArea.name = 'Description';
+    editTextArea.rows = '6';
+    editTextArea.placeholder = 'Enter Description of Blog';
+    editTextArea.value = description; // Pass the description value
+
+    const submitButton = document.createElement('button');
+    submitButton.type = 'submit';
+    submitButton.innerText = 'Save';
+
+    editForm.appendChild(editInput);
+    editForm.appendChild(editTextArea);
+    editForm.appendChild(submitButton);
+
+    box.innerHTML = ''; // Clear the box content
+    box.appendChild(editForm);
+};
+
+
+window.completeEdit = async (event, docId) => {
+    event.preventDefault();
+    const form = event.target;
+    const headingInput = form.elements.blog;
+    const descriptionTextarea = form.elements.Description;
+
+    console.log("Complete Edit Called");
+    console.log("Doc ID:", docId);
+    console.log("Heading:", headingInput.value);
+    console.log("Description:", descriptionTextarea.value);
+
+    // Update the Firestore document with new values
+    await updateDoc(doc(db, "posts", docId), {
+        heading: headingInput.value,
+        description: descriptionTextarea.value
+    });
+
+    // You can add more logic here to show a success message or update the UI
+
+    // Optional: Refresh the page to show updated data
+    window.location.reload();
+};
+
+
+            
+          
+                
+                //delete post function
+    window.deleteBook = async (docId) => {
+  try {
+    const postRef = doc(db, "posts", docId);
+
+    // Delete the post document
+    await deleteDoc(postRef);
+
+    console.log("Post deleted successfully");
+    alert("Post deleted successfully please refresh your browser");
+  } 
+  catch (error) {
+    console.error("Error deleting post:", error);
+  }
+};
+            })
+     </script>
+
+
+</body>
+</html>
